@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fake Image Detection</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /* === Animations === */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .animate-fadeIn { animation: fadeIn 0.8s ease-out; }
+    .animate-scaleIn { animation: scaleIn 0.6s ease-out; }
+
+    /* === Page Background === */
+    body {
+      font-family:cursive;
+      margin: 0;
+      height: 100vh;
+      overflow-x: hidden;
+      background: linear-gradient(to right, #afdeec,#fefefe);
+      color: #000;
+    }
+
+    /* === Background Image Overlay === */
+    .bg-overlay {
+      background-image: url('https://as1.ftcdn.net/v2/jpg/10/92/88/32/1000_F_1092883235_PhhZwn4a6hn5eXELltwV6nBWietDbd70.jpg');
+      background-size:cover;
+      background-position: center;
+      background-repeat:no-repeat;
+      position:fixed;
+      inset:0;
+      z-index: 0;
+      opacity:0.9;
+      filter:blur(5px);
+    }
+  </style>
+</head>
+
+<body class="relative flex h-screen">
+
+  <!-- Background -->
+  <div class="bg-overlay"></div>
+
+  <!-- Sidebar Navbar -->
+  <div class="group fixed left-0 top-0 h-full bg-white/0 shadow-3x1 
+              border-r border-cyan-900 flex flex-col items-center py-6 transition-all duration-500
+              w-14 hover:w-56 overflow-hidden shadow-md z-10 ">
+    <div class="text-gray-700 text-3xl font-semibold sm:text-4xl mb-8">🔍</div>
+    <nav class="flex flex-col space-y-4 w-full">
+      <a href="/" class="flex items-center space-x-3 px-4 py-2 text-gray-500 text-2xl hover:bg-gray-200/60 rounded-lg  hover:scale-125  transition-all duration-300">
+        <span>🏠</span>
+        <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-semibold">Home</span>
+      </a>
+      <a href="#upload-form" class="flex items-center space-x-3 px-4 py-2 text-gray-600  sm:text-2xl hover:bg-gray-200/60 rounded-lg  hover:scale-125  transition-all duration-300">
+        <span>📤</span>
+        <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-semibold">Upload</span>
+      </a>
+      <a href="#about" class="flex items-center space-x-3 px-4 py-2 text-gray-600 hover:bg-gray-200/60 sm:text-2xl rounded-lg hover:scale-125  transition-all duration-300">
+        <span>ℹ️</span>
+        <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-semibold">About</span>
+      </a>
+        <a href="/templates/performance.html" class="flex items-center space-x-3 px-4 py-2 text-gray-500 text-2xl hover:bg-gray-200/60 rounded-lg  hover:scale-125  transition-all duration-300">
+          <span>📊</span>
+        <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-semibold">Performance</span>
+        </a>
+    </nav>
+  </div>
+
+  <!-- Main Section -->
+  <div class="flex-1 flex items-center justify-center p-6 sm:ml-14 z-10">
+    <!-- Transparent Form -->
+    <div class="relative bg-white/30  p-8 sm:p-10 rounded-3xl shadow-2xl 
+                border border-white/40 w-full max-w-xl animate-fadeIn  hover:scale-95  transition-all duration-900">
+
+      <h1 class="text-3xl sm:text-5xl font-extrabold mb-8 text-center 
+                 text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:scale-105  transition-all duration-300 ">
+        Fake Image Detection
+      </h1>
+
+      <!-- Upload Form -->
+      <form id="upload-form" action="/predict" method="post" enctype="multipart/form-data" class="space-y-4">
+        <label for="fileInput" id="drop-zone"
+          class="border-2 border-dashed border-cyan-900 rounded-3xl p-10 flex flex-col items-center justify-center 
+                 text-center font-semibold text-gray-700 cursor-pointer hover:bg-gradient-to-r from-blue-100/40 to-pink-100/40 
+                 hover:text-blue-600  hover:scale-105  transition-all duration-300">
+          <div id="initial-upload-content" class="space-y-2">
+            <p class="text-lg">📂 Drag & Drop your Image or Video</p>
+            <p class="text-sm text-gray-600">or click to select</p>
+          </div>
+          <div id="file-preview-content" class="hidden flex flex-col items-center text-blue-600 p-4">
+            <p class="text-xl mb-2">☑️ File Ready</p>
+            <p id="file-name-display" class="text-base font-bold text-gray-700 bg-blue-100 p-2 rounded-lg truncate w-64"></p>
+            <p class="text-xs mt-2 text-gray-500">Click to choose another file</p>
+          </div>
+          <input type="file" name="file" id="fileInput" accept="image/*,video/*" class="hidden" required />
+        </label>
+
+        <button type="submit"
+          class="w-full py-3 bg-gradient-to-r from-blue-500 to-pink-400 rounded-xl font-bold text-white shadow-lg 
+                 hover:scale-105 active:scale-95 transition-all duration-300">
+          🚀 Upload & Detect
+        </button>
+      </form>
+
+      <!-- Prediction Result -->
+      {% if result %}
+      <div class="mt-8 p-6 bg-white/20 backdrop-blur-xl border border-red/100 rounded-2xl text-center text-gray-800 shadow-xl animate-scaleIn">
+        <p class="font-semibold text-lg mb-1 sm:text-3xl">Prediction Result:</p>
+        <p class="text-4xl font-bold text-green-200">{{ result }}</p>
+
+        {% if confidence %}
+<div class="mt-4">
+  <!-- Dynamic bar color -->
+  {% set bar_color = 'from-red-500 to-pink-400' if result == 'FAKE' else 'from-green-400 to-lime-400' %}
+
+  <div class="w-full bg-gray-300 rounded-full h-4 overflow-hidden">
+    <div class="h-4 rounded-full transition-all duration-700 bg-gradient-to-r {{ bar_color }}"
+         style="width: {{ confidence if confidence <= 100 else 100 }}%;"></div>
+  </div>
+
+  <p class="text-sm mt-2 text-gray-700 font-semibold">
+    {{ "%.2f" | format(confidence if confidence <= 100 else 100) }}% Confidence
+  </p>
+</div>
+{% endif %}
+
+
+        {% if file_url %}
+        <div class="mt-6">
+          {% if file_url.endswith('.jpg') or file_url.endswith('.jpeg') or file_url.endswith('.png') %}
+            <img src="{{ file_url }}" alt="Uploaded Image" 
+                 class="rounded-xl shadow-md border border-green-200 mx-auto max-h-72 w-full object-contain">
+          {% elif file_url.endswith('.mp4') or file_url.endswith('.avi') or file_url.endswith('.mov') %}
+            <video controls class="rounded-xl shadow-md w-full border border-gray-200 max-h-72">
+              <source src="{{ file_url }}" type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('fileInput');
+    const initialContent = document.getElementById('initial-upload-content');
+    const previewContent = document.getElementById('file-preview-content');
+    const fileNameDisplay = document.getElementById('file-name-display');
+
+    function updateFileDisplay() {
+      if (fileInput.files.length > 0) {
+        const fileName = fileInput.files[0].name;
+        fileNameDisplay.textContent = fileName;
+        initialContent.classList.add('hidden');
+        previewContent.classList.remove('hidden');
+      } else {
+        fileNameDisplay.textContent = '';
+        initialContent.classList.remove('hidden');
+        previewContent.classList.add('hidden');
+      }
+    }
+
+    fileInput.addEventListener('change', updateFileDisplay);
+    dropZone.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropZone.classList.add('border-pink-400', 'bg-pink-50/40');
+    });
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('border-pink-400', 'bg-pink-50/40');
+    });
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('border-pink-400', 'bg-pink-50/40');
+      fileInput.files = e.dataTransfer.files;
+      updateFileDisplay();
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Model Performance Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="min-h-screen bg-gradient-to-r from-pink-100 via-blue-100 to-purple-100 flex">
+
+  <!-- Sidebar (same as your index.html) -->
+  <div class="group fixed left-0 top-0 h-full bg-gradient-to-b from-blue-200 to-pink-200 border-r border-blue-300 flex flex-col items-center py-6 transition-all duration-300 w-14 hover:w-56 overflow-hidden shadow-lg">
+    <div class="text-gray-700 text-3xl font-bold mb-8">📊</div>
+    <nav class="flex flex-col space-y-4 w-full">
+      <a href="/" class="flex items-center space-x-3 px-4 py-2 text-gray-700 hover:bg-blue-300/50 rounded-lg transition">
+        <span>🏠</span>
+        <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300">Home</span>
+      </a>
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  <div class="flex-1 p-10 sm:ml-14">
+    <h1 class="text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-pink-500 mb-10">
+      📈 Model Performance
+    </h1>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+      <div class="bg-white/80 backdrop-blur-lg p-6 rounded-2xl shadow-lg">
+        <h2 class="text-gray-700 font-bold mb-3 text-lg">Accuracy over Epochs</h2>
+        <canvas id="accuracyChart"></canvas>
+      </div>
+
+      <div class="bg-white/80 backdrop-blur-lg p-6 rounded-2xl shadow-lg">
+        <h2 class="text-gray-700 font-bold mb-3 text-lg">Loss over Epochs</h2>
+        <canvas id="lossChart"></canvas>
+      </div>
+
+      <div class="bg-white/80 backdrop-blur-lg p-6 rounded-2xl shadow-lg sm:col-span-2">
+        <h2 class="text-gray-700 font-bold mb-3 text-lg">ROC Curve</h2>
+        <canvas id="rocChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const epochs = {{ epochs|tojson }};
+    const train_acc = {{ train_acc|tojson }};
+    const val_acc = {{ val_acc|tojson }};
+    const train_loss = {{ train_loss|tojson }};
+    const val_loss = {{ val_loss|tojson }};
+    const fpr = {{ fpr|tojson }};
+    const tpr = {{ tpr|tojson }};
+
+    new Chart(document.getElementById('accuracyChart'), {
+      type: 'line',
+      data: {
+        labels: epochs,
+        datasets: [
+          { label: 'Train Accuracy', data: train_acc, borderColor: 'green', fill: false },
+          { label: 'Validation Accuracy', data: val_acc, borderColor: 'blue', fill: false }
+        ]
+      },
+      options: { responsive: true }
+    });
+
+    new Chart(document.getElementById('lossChart'), {
+      type: 'line',
+      data: {
+        labels: epochs,
+        datasets: [
+          { label: 'Train Loss', data: train_loss, borderColor: 'red', fill: false },
+          { label: 'Validation Loss', data: val_loss, borderColor: 'orange', fill: false }
+        ]
+      },
+      options: { responsive: true }
+    });
+
+    new Chart(document.getElementById('rocChart'), {
+      type: 'line',
+      data: {
+        labels: fpr,
+        datasets: [
+          { label: 'ROC Curve', data: tpr, borderColor: 'purple', fill: false }
+        ]
+      },
+      options: { responsive: true }
+    });
+  </script>
+
+</body>
+</html>
